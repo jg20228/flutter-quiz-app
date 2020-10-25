@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:quiz_app_test/model/model_quiz.dart';
+import 'package:quiz_app_test/screen/screen_result.dart';
 import 'package:quiz_app_test/widget/widget_candidate.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -16,13 +17,14 @@ class _QuizScreenState extends State<QuizScreen> {
   List<int> _answers = [-1, -1, -1];
   List<bool> _answerState = [false, false, false, false];
   int _currentIndex = 0;
+  SwiperController _controller = SwiperController();
 
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
 
     double width = screenSize.width;
-    double height = screenSize.height;
+    double height = screenSize.height + 200;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.deepPurple,
@@ -35,6 +37,7 @@ class _QuizScreenState extends State<QuizScreen> {
             width: width * 0.85,
             height: height * 0.5,
             child: Swiper(
+              controller: _controller,
               physics: NeverScrollableScrollPhysics(),
               loop: false,
               itemCount: widget.quizs.length,
@@ -85,6 +88,45 @@ class _QuizScreenState extends State<QuizScreen> {
           Column(
             children: _buildCandidates(width, quiz),
           ),
+          Container(
+            padding: EdgeInsets.all(width * 0.024),
+            child: Center(
+              child: ButtonTheme(
+                minWidth: width * 0.5,
+                height: height * 0.05,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: RaisedButton(
+                  child: _currentIndex == widget.quizs.length - 1
+                      ? Text('결과보기')
+                      : Text('다음문제'),
+                  textColor: Colors.white,
+                  color: Colors.deepPurple,
+                  onPressed: _answers[_currentIndex] == -1
+                      ? null
+                      : () {
+                          if (_currentIndex == widget.quizs.length - 1) {
+                            //
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ResultScreen(
+                                  answers: _answers,
+                                  quizs: widget.quizs,
+                                ),
+                              ),
+                            );
+                          } else {
+                            _answerState = [false, false, false, false];
+                            _currentIndex += 1;
+                            _controller.next();
+                          }
+                        },
+                ),
+              ),
+            ),
+          )
         ],
       ),
     );
@@ -105,6 +147,8 @@ class _QuizScreenState extends State<QuizScreen> {
                 if (j == i) {
                   _answerState[j] = true;
                   _answers[_currentIndex] = j;
+                  //print(_answers[_currentIndex]);
+                  //print(width);
                 } else {
                   _answerState[j] = false;
                 }
